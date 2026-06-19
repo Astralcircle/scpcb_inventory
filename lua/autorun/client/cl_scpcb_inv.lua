@@ -40,7 +40,7 @@ local function GetClassIcon(class)
 		return ent.IconOverride
 	end
 
-	return "scpcb/alface2.jpg"
+	return "scpcb/alface2.png"
 end
 
 local function GetClassName(class)
