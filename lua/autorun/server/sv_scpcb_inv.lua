@@ -1,3 +1,4 @@
+resource.AddWorkshop("3747919146")
 util.AddNetworkString("SCPCB_Inventory")
 util.AddNetworkString("SCPCB_ClearInventory")
 
