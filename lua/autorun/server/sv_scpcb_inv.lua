@@ -34,9 +34,6 @@ local function SendSlotClear(slot, ply)
 	net.Send(ply)
 end
 
-local disable_soundcheck
-local enable_switchcheck
-
 net.Receive("SCPCB_Inventory", function(len, ply)
 	local inventory = SetupInventory(ply)
 	local action = net.ReadUInt(3)
@@ -50,12 +47,12 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 			local weapon = ply:GetWeapon(item.class)
 
 			if weapon:IsValid() then
-				enable_switchcheck = true
+				ply.SCPCBEnableSwitchCheck = true
 
 				weapon.ammo_given = item.ammo_given
 				ply:DropNamedWeapon(item.class)
 
-				enable_switchcheck = nil
+				ply.SCPCBEnableSwitchCheck = nil
 			end
 		end
 	end
