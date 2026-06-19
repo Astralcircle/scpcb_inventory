@@ -158,6 +158,23 @@ hook.Add("PlayerSwitchWeapon", "SCPCB_SwitchWeaponDisallow", function(ply)
 	return ply.SCPCBEnableSwitchCheck
 end)
 
+hook.Add("PlayerInitialSpawn", "SCPCB_TransitionCompact", function(ply, transition)
+	if transition then
+		local inventory = SetupInventory(ply)
+
+		for slot = 1, 10 do
+			local item = inventory[slot]
+
+			if item and ply:HasWeapon(item.class) then
+				SendSlotChange(slot, item.class, ply)
+			else
+				inventory[slot] = nil
+				SendSlotClear(slot, ply)
+			end
+		end
+	end
+end)
+
 hook.Add("PlayerSpawn", "SCPCB_SilentSpawnEquip", function(ply)
 	ply.SCPCBDisableSpawnChecks = true
 
