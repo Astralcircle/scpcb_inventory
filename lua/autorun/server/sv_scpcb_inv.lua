@@ -109,6 +109,8 @@ hook.Add("WeaponEquip", "SCPCB_PickupWeapon", function(weapon, ply)
 		if not ignore_soundcheck then
 			ply:EmitSound("scpcb/pickitem2.ogg")
 		end
+	else
+		weapon:Remove()
 	end
 
 	return false
