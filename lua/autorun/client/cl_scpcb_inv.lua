@@ -1,5 +1,6 @@
 local inventory = {}
 local icons_parent
+local inventory_key = CreateClientConVar("scp_cb_inventory_key", "G", true)
 local menublack = Material("scpcb/menublack.png", "noclamp")
 local menuwhite = Material("scpcb/menuwhite.png", "noclamp")
 local menuscale = ScrH() / 1024
@@ -279,13 +280,9 @@ hook.Add("OnScreenSizeChanged", "SCPCB_UpdateResolution", function()
 end)
 
 hook.Add("PlayerBindPress", "SCPCB_OpenInventory", function(ply, bind, pressed, button)
-	if button == KEY_G and pressed then
+	if button == input.GetKeyCode(inventory_key:GetString()) and pressed then
 		ToggleInventory()
 	end
-end)
-
-concommand.Add("scp_cb_inventory", function()
-	ToggleInventory()
 end)
 
 net.Receive("SCPCB_Inventory", function()
