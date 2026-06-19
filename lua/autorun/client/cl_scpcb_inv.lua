@@ -105,6 +105,19 @@ local function ToggleInventory()
 		icon:SetPos(x, y)
 		icon:SetSize(w, h)
 
+		local cached_class
+		local cached_name
+		local cached_icon
+
+		local function UpdateCache(class)
+			if class ~= cached_class then
+				cached_class = class
+				cached_name = GetClassName(cached_class)
+				cached_icon = Material(GetClassIcon(cached_class), "smooth")
+			end
+		end
+
+		UpdateCache(inventory[slot])
 		local offset = math.floor(3 * menuscale)
 
 		function icon:Paint(w, h)
@@ -141,7 +154,8 @@ local function ToggleInventory()
 					local class = inventory[slot]
 
 					if class then
-						draw.SimpleText(GetClassName(class), "SCPCB_Inventory", w / 2, h + spacing / 1.5, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
+						UpdateCache(class)
+						draw.SimpleText(cached_name, "SCPCB_Inventory", w / 2, h + spacing / 1.5, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
 					end
 				DisableClipping(false)
 			end
@@ -157,11 +171,13 @@ local function ToggleInventory()
 		image.SlotIndex = slot
 
 		function image:Paint(w, h)
-			if not inventory[slot] then return end
-			local class_icon = GetClassIcon(inventory[slot])
+			local class = inventory[slot]
+			if not class then return end
+
+			UpdateCache(class)
 
 			surface.SetDrawColor(255, 255, 255)
-			surface.SetMaterial(Material(class_icon, "smooth"))
+			surface.SetMaterial(cached_icon)
 			surface.DrawTexturedRect(0, 0, w, h)
 
 			return true
