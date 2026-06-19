@@ -1,7 +1,7 @@
 local inventory = {}
 local icons_parent
-local menublack = Material("scpcb/menublack.png", "noclamp smooth")
-local menuwhite = Material("scpcb/menuwhite.png", "noclamp smooth")
+local menublack = Material("scpcb/menublack.png", "noclamp")
+local menuwhite = Material("scpcb/menuwhite.png", "noclamp")
 local menuscale = ScrH() / 1024
 
 surface.CreateFont("SCPCB_Inventory", {
@@ -14,17 +14,6 @@ surface.CreateFont("SCPCB_Inventory", {
 if IsValid(icons_parent) then
 	icons_parent:Remove()
 end
-
-hook.Add("OnScreenSizeChanged", "G", function()
-	menuscale = ScrH() / 1024
-
-	surface.CreateFont("SCPCB_Inventory", {
-		font = "Courier New",
-		size = 19 * menuscale,
-		extended = true,
-		shadow = true
-	})
-end)
 
 local function GetClassIcon(class)
 	if file.Exists("materials/entities/" .. class .. ".png", "GAME") then
@@ -122,11 +111,15 @@ local function ToggleInventory()
 		function icon:Paint(w, h)
 			surface.SetDrawColor(255, 255, 255)
 
+			local tile_x, tile_y = ((slot - 1) % 5) * w, math.floor((slot - 1) / 5) * h
+			local u1, v1 = tile_x / 1024, tile_y / 1024
+			local u2, v2 = (tile_x + w) / 1024, (tile_y + h) / 1024
+
 			surface.SetMaterial(menuwhite)
-			surface.DrawTexturedRect(0, 0, w, h)
+			surface.DrawTexturedRectUV(0, 0, w, h, u1, v1, u2, v2)
 
 			surface.SetMaterial(menublack)
-			surface.DrawTexturedRect(offset, offset, w - offset * 2, h - offset * 2)
+			surface.DrawTexturedRectUV(offset, offset, w - offset * 2, h - offset * 2, u1, v1, u2, v2)
 
 			local class = inventory[self.SlotIndex]
 
@@ -253,6 +246,22 @@ local function ToggleInventory()
 		end
 	end
 end
+
+hook.Add("OnScreenSizeChanged", "SCPCB_UpdateResolution", function()
+	menuscale = ScrH() / 1024
+
+	surface.CreateFont("SCPCB_Inventory", {
+		font = "Courier New",
+		size = 19 * menuscale,
+		extended = true,
+		shadow = true
+	})
+
+	if IsValid(icons_parent) then
+		icons_parent:Remove()
+		ToggleInventory()
+	end
+end)
 
 hook.Add("PlayerBindPress", "SCPCB_OpenInventory", function(ply, bind, pressed, button)
 	if button == KEY_G and pressed then
