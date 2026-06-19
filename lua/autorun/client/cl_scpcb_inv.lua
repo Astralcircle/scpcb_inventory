@@ -104,7 +104,6 @@ local function ToggleInventory()
 		local icon = vgui.Create("Panel", icons_parent)
 		icon:SetPos(x, y)
 		icon:SetSize(w, h)
-		icon.SlotIndex = slot
 
 		local offset = math.floor(3 * menuscale)
 
@@ -121,7 +120,7 @@ local function ToggleInventory()
 			surface.SetMaterial(menublack)
 			surface.DrawTexturedRectUV(offset, offset, w - offset * 2, h - offset * 2, u1, v1, u2, v2)
 
-			local class = inventory[self.SlotIndex]
+			local class = inventory[slot]
 
 			if class then
 				local active_weapon = local_player:GetActiveWeapon()
@@ -139,7 +138,7 @@ local function ToggleInventory()
 					surface.SetDrawColor(255, 0, 0)
 					surface.DrawOutlinedRect(-1, -1, w + 2, h + 2, 1)
 
-					local class = inventory[self.SlotIndex]
+					local class = inventory[slot]
 
 					if class then
 						draw.SimpleText(GetClassName(class), "SCPCB_Inventory", w / 2, h + spacing / 1.5, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, color_black)
@@ -158,8 +157,8 @@ local function ToggleInventory()
 		image.SlotIndex = slot
 
 		function image:Paint(w, h)
-			if not inventory[self.SlotIndex] then return end
-			local class_icon = GetClassIcon(inventory[self.SlotIndex])
+			if not inventory[slot] then return end
+			local class_icon = GetClassIcon(inventory[slot])
 
 			surface.SetDrawColor(255, 255, 255)
 			surface.SetMaterial(Material(class_icon, "smooth"))
@@ -187,7 +186,7 @@ local function ToggleInventory()
 
 			net.Start("SCPCB_Inventory")
 			net.WriteUInt(2, 3)
-			net.WriteUInt(self.SlotIndex, 4)
+			net.WriteUInt(slot, 4)
 			net.SendToServer()
 		end
 
