@@ -119,7 +119,9 @@ local function ClearRemovedWeapon(owner, weapon)
 	local class = weapon:GetClass()
 
 	for slot = 1, 10 do
-		if inventory[slot].class == class then
+		local item = inventory[slot]
+
+		if item and item.class == class then
 			inventory[slot] = nil
 			SendSlotClear(slot, owner)
 			break
