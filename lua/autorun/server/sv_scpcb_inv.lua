@@ -27,6 +27,16 @@ local function SendSlotChange(slot, class, ply)
 	net.Send(ply)
 end
 
+local function SendSlotClear(slot, ply)
+	net.Start("SCPCB_ClearInventory")
+
+	if slot then
+		net.WriteUInt(slot, 4)
+	end
+
+	net.Send(ply)
+end
+
 local ignore_pickupcheck
 local ignore_soundcheck
 
@@ -40,16 +50,9 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 		local item = inventory[dropped_slot]
 
 		if item then
-			ignore_pickupcheck = true
-
-			local weapon = ply:Give(item.class, true)
 			ply:GetWeapon(item.class).ammo_given = item.ammo_given
 			ply:DropNamedWeapon(item.class)
-
-			ignore_pickupcheck = false
 		end
-
-		inventory[dropped_slot] = nil
 	end
 
 	-- Use
@@ -61,12 +64,12 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 			local active_weapon = ply:GetActiveWeapon()
 
 			if active_weapon:IsValid() and active_weapon:GetClass() == item.class then
-				ply:StripWeapons()
+				ply:SetActiveWeapon(NULL)
 			else
 				ignore_pickupcheck = true
 
-				ply:StripWeapons()
-				ply:Give(item.class, item.ammo_given)
+				ply:SetActiveWeapon(NULL)
+				ply:SelectWeapon(item.class)
 				item.ammo_given = true
 
 				ignore_pickupcheck = false
@@ -90,7 +93,7 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 	end
 end)
 
-hook.Add("PlayerCanPickupWeapon", "SCPCB_PickupWeapon", function(ply, weapon)
+hook.Add("WeaponEquip", "SCPCB_PickupWeapon", function(weapon, ply)
 	if ignore_pickupcheck or weapon:IsMarkedForDeletion() then
 		return
 	end
@@ -106,11 +109,38 @@ hook.Add("PlayerCanPickupWeapon", "SCPCB_PickupWeapon", function(ply, weapon)
 		if not ignore_soundcheck then
 			ply:EmitSound("scpcb/pickitem2.ogg")
 		end
-
-		weapon:Remove()
 	end
 
 	return false
+end)
+
+local function ClearRemovedWeapon(owner, weapon)
+	local inventory = SetupInventory(owner)
+	local class = weapon:GetClass()
+
+	for slot = 1, 10 do
+		if inventory[slot].class == class then
+			inventory[slot] = nil
+			SendSlotClear(slot, owner)
+			break
+		end
+	end
+end
+
+hook.Add("PlayerDroppedWeapon", "SCPCB_CleanInventory", function(owner, weapon)
+	if owner:IsPlayer() then
+		ClearRemovedWeapon(owner, weapon)
+	end
+end)
+
+hook.Add("EntityRemoved", "SCPCB_CleanInventory", function(ent)
+	if ent:IsWeapon() then
+		local owner = ent:GetOwner()
+
+		if owner:IsValid() and owner:IsPlayer() then
+			ClearRemovedWeapon(owner, ent)
+		end
+	end
 end)
 
 hook.Add("PlayerSwitchWeapon", "SCPCB_SwitchWeaponDisallow", function()
@@ -131,6 +161,5 @@ end)
 
 hook.Add("PostPlayerDeath", "SCPCB_ClearInventory", function(ply)
 	ply.SCPCBItems = {}
-	net.Start("SCPCB_ClearInventory")
-	net.Send(ply)
+	SendSlotClear(nil, ply)
 end)
