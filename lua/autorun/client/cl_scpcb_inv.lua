@@ -92,11 +92,7 @@ hook.Add("PostGamemodeLoaded", "SCPCB_HideHUD", function()
 	end
 end)
 
-hook.Add("PlayerButtonDown", "SCPCB_OpenInventory", function(ply, button)
-	if button ~= KEY_G then
-		return
-	end
-
+local function ToggleInventory()
 	if IsValid(icons_parent) then
 		icons_parent:Remove()
 		return
@@ -256,6 +252,16 @@ hook.Add("PlayerButtonDown", "SCPCB_OpenInventory", function(ply, button)
 			CreateIconFrame(x, y, slot_size, slot_size, (row - 1) * cols + col)
 		end
 	end
+end
+
+hook.Add("PlayerBindPress", "SCPCB_OpenInventory", function(ply, bind, pressed, button)
+	if button == KEY_G and pressed then
+		ToggleInventory()
+	end
+end)
+
+concommand.Add("scp_cb_inventory", function()
+	ToggleInventory()
 end)
 
 net.Receive("SCPCB_Inventory", function()
