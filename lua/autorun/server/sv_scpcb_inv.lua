@@ -34,9 +34,8 @@ local function SendSlotClear(slot, ply)
 	net.Send(ply)
 end
 
-local ignore_pickupcheck
-local ignore_soundcheck
-local ignore_switchcheck
+local disable_soundcheck
+local enable_switchcheck
 
 net.Receive("SCPCB_Inventory", function(len, ply)
 	local inventory = SetupInventory(ply)
@@ -48,8 +47,16 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 		local item = inventory[dropped_slot]
 
 		if item then
-			ply:GetWeapon(item.class).ammo_given = item.ammo_given
-			ply:DropNamedWeapon(item.class)
+			local weapon = ply:GetWeapon(item.class)
+
+			if weapon:IsValid() then
+				enable_switchcheck = true
+
+				weapon.ammo_given = item.ammo_given
+				ply:DropNamedWeapon(item.class)
+
+				enable_switchcheck = nil
+			end
 		end
 	end
 
@@ -64,15 +71,8 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 			if active_weapon:IsValid() and active_weapon:GetClass() == item.class then
 				ply:SetActiveWeapon(NULL)
 			else
-				ignore_pickupcheck = true
-				ignore_switchcheck = true
-
-				ply:SetActiveWeapon(NULL)
 				ply:SelectWeapon(item.class)
 				item.ammo_given = true
-
-				ignore_pickupcheck = nil
-				ignore_switchcheck = nil
 			end
 
 			ply:EmitSound("scpcb/pickitem2.ogg")
@@ -94,8 +94,18 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 end)
 
 hook.Add("WeaponEquip", "SCPCB_PickupWeapon", function(weapon, ply)
-	if ignore_pickupcheck or weapon:IsMarkedForDeletion() then
+	if weapon:IsMarkedForDeletion() then
 		return
+	end
+
+	if not ply.SCPCBDisableSpawnChecks then
+		ply.SCPCBEnableSwitchCheck = true
+
+		timer.Simple(0, function()
+			if ply:IsValid() then
+				ply.SCPCBEnableSwitchCheck = nil
+			end
+		end)
 	end
 
 	local inventory = SetupInventory(ply)
@@ -106,7 +116,7 @@ hook.Add("WeaponEquip", "SCPCB_PickupWeapon", function(weapon, ply)
 		inventory[slot] = {class = class, ammo_given = weapon.ammo_given}
 		SendSlotChange(slot, class, ply)
 
-		if not ignore_soundcheck then
+		if not ply.SCPCBDisableSpawnChecks then
 			ply:EmitSound("scpcb/pickitem2.ogg")
 		end
 	else
@@ -147,20 +157,16 @@ hook.Add("EntityRemoved", "SCPCB_CleanInventory", function(ent)
 	end
 end)
 
-hook.Add("PlayerSwitchWeapon", "SCPCB_SwitchWeaponDisallow", function()
-	if ignore_switchcheck then
-		return
-	end
-
-	return true
+hook.Add("PlayerSwitchWeapon", "SCPCB_SwitchWeaponDisallow", function(ply)
+	return ply.SCPCBEnableSwitchCheck
 end)
 
-hook.Add("PlayerSpawn", "SCPCB_SilentSpawnEquip", function()
-	ignore_switchcheck = true
-	ignore_soundcheck = true
-end)
+hook.Add("PlayerSpawn", "SCPCB_SilentSpawnEquip", function(ply)
+	ply.SCPCBDisableSpawnChecks = true
 
-hook.Add("PlayerSetModel", "SCPCB_SilentSpawnEquip", function()
-	ignore_switchcheck = nil
-	ignore_soundcheck = nil
+	timer.Simple(0, function()
+		if ply:IsValid() then
+			ply.SCPCBDisableSpawnChecks = nil
+		end
+	end)
 end)
