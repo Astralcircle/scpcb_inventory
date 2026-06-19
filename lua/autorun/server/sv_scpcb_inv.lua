@@ -39,6 +39,7 @@ end
 
 local ignore_pickupcheck
 local ignore_soundcheck
+local ignore_switchcheck
 
 net.Receive("SCPCB_Inventory", function(len, ply)
 	local inventory = SetupInventory(ply)
@@ -67,12 +68,14 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 				ply:SetActiveWeapon(NULL)
 			else
 				ignore_pickupcheck = true
+				ignore_switchcheck = true
 
 				ply:SetActiveWeapon(NULL)
 				ply:SelectWeapon(item.class)
 				item.ammo_given = true
 
-				ignore_pickupcheck = false
+				ignore_pickupcheck = nil
+				ignore_switchcheck = nil
 			end
 
 			ply:EmitSound("scpcb/pickitem2.ogg")
@@ -148,7 +151,7 @@ hook.Add("EntityRemoved", "SCPCB_CleanInventory", function(ent)
 end)
 
 hook.Add("PlayerSwitchWeapon", "SCPCB_SwitchWeaponDisallow", function()
-	if ignore_pickupcheck then
+	if ignore_switchcheck then
 		return
 	end
 
@@ -156,11 +159,13 @@ hook.Add("PlayerSwitchWeapon", "SCPCB_SwitchWeaponDisallow", function()
 end)
 
 hook.Add("PlayerSpawn", "SCPCB_SilentSpawnEquip", function()
+	ignore_switchcheck = true
 	ignore_soundcheck = true
 end)
 
 hook.Add("PlayerSetModel", "SCPCB_SilentSpawnEquip", function()
-	ignore_soundcheck = false
+	ignore_switchcheck = nil
+	ignore_soundcheck = nil
 end)
 
 hook.Add("PostPlayerDeath", "SCPCB_ClearInventory", function(ply)
