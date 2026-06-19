@@ -50,6 +50,8 @@ local function GetClassIcon(class)
 	if ent and ent.IconOverride then
 		return ent.IconOverride
 	end
+
+	return "scpcb/alface2.jpg"
 end
 
 local function GetClassName(class)
