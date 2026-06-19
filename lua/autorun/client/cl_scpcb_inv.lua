@@ -290,9 +290,5 @@ net.Receive("SCPCB_Inventory", function()
 end)
 
 net.Receive("SCPCB_ClearInventory", function(len)
-	if len > 0 then
-		inventory[net.ReadUInt(4)] = nil
-	else
-		inventory = {}
-	end
+	inventory[net.ReadUInt(4)] = nil
 end)

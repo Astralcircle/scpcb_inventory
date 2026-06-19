@@ -30,11 +30,7 @@ end
 
 local function SendSlotClear(slot, ply)
 	net.Start("SCPCB_ClearInventory")
-
-	if slot then
-		net.WriteUInt(slot, 4)
-	end
-
+	net.WriteUInt(slot, 4)
 	net.Send(ply)
 end
 
@@ -167,9 +163,4 @@ end)
 hook.Add("PlayerSetModel", "SCPCB_SilentSpawnEquip", function()
 	ignore_switchcheck = nil
 	ignore_soundcheck = nil
-end)
-
-hook.Add("PostPlayerDeath", "SCPCB_ClearInventory", function(ply)
-	ply.SCPCBItems = {}
-	SendSlotClear(nil, ply)
 end)
