@@ -43,7 +43,8 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 			if item.is_weapon then
 				ignore_pickupcheck = true
 
-				ply:Give(item.class, true)
+				local weapon = ply:Give(item.class, true)
+				ply:GetWeapon(item.class).ammo_given = item.ammo_given
 				ply:DropNamedWeapon(item.class)
 
 				ignore_pickupcheck = false
@@ -103,7 +104,7 @@ hook.Add("PlayerCanPickupWeapon", "SCPCB_PickupWeapon", function(ply, weapon)
 
 	if slot then
 		local class = weapon:GetClass()
-		inventory[slot] = {class = class, is_weapon = true}
+		inventory[slot] = {class = class, is_weapon = true, ammo_given = weapon.ammo_given}
 		SendSlotChange(slot, class, ply)
 
 		if not ignore_soundcheck then
