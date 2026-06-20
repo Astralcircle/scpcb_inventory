@@ -250,7 +250,6 @@ local function ToggleInventory()
 		net.WriteUInt(dropped_slot, 4)
 		net.SendToServer()
 
-		surface.PlaySound("scpcb/pickitem2.ogg")
 		inventory[dropped_slot] = nil
 	end)
 

@@ -44,16 +44,15 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 		local item = inventory[dropped_slot]
 
 		if item then
-			local weapon = ply:GetWeapon(item.class)
+			local weapon = ply:GetWeapon(item)
 
 			if weapon:IsValid() then
 				ply.SCPCBEnableSwitchCheck = true
-
-				weapon.ammo_given = item.ammo_given
-				ply:DropNamedWeapon(item.class)
-
+				ply:DropNamedWeapon(item)
 				ply.SCPCBEnableSwitchCheck = nil
 			end
+
+			ply:EmitSound("scpcb/pickitem2.ogg")
 		end
 	end
 
@@ -65,11 +64,10 @@ net.Receive("SCPCB_Inventory", function(len, ply)
 		if item then
 			local active_weapon = ply:GetActiveWeapon()
 
-			if active_weapon:IsValid() and active_weapon:GetClass() == item.class then
+			if active_weapon:IsValid() and active_weapon:GetClass() == item then
 				ply:SetActiveWeapon(NULL)
 			else
-				ply:SelectWeapon(item.class)
-				item.ammo_given = true
+				ply:SelectWeapon(item)
 			end
 
 			ply:EmitSound("scpcb/pickitem2.ogg")
@@ -95,22 +93,12 @@ hook.Add("WeaponEquip", "SCPCB_PickupWeapon", function(weapon, ply)
 		return
 	end
 
-	if not ply.SCPCBDisableSpawnChecks then
-		ply.SCPCBEnableSwitchCheck = true
-
-		timer.Simple(0, function()
-			if ply:IsValid() then
-				ply.SCPCBEnableSwitchCheck = nil
-			end
-		end)
-	end
-
 	local inventory = SetupInventory(ply)
 	local slot = FindFreeSlot(inventory)
 
 	if slot then
 		local class = weapon:GetClass()
-		inventory[slot] = {class = class, ammo_given = weapon.ammo_given}
+		inventory[slot] = class
 		SendSlotChange(slot, class, ply)
 
 		if not ply.SCPCBDisableSpawnChecks then
@@ -128,9 +116,7 @@ local function ClearRemovedWeapon(owner, weapon)
 	local class = weapon:GetClass()
 
 	for slot = 1, 10 do
-		local item = inventory[slot]
-
-		if item and item.class == class then
+		if inventory[slot] == class then
 			inventory[slot] = nil
 			SendSlotClear(slot, owner)
 			break
@@ -165,8 +151,8 @@ hook.Add("PlayerInitialSpawn", "SCPCB_TransitionCompact", function(ply, transiti
 		for slot = 1, 10 do
 			local item = inventory[slot]
 
-			if item and ply:HasWeapon(item.class) then
-				SendSlotChange(slot, item.class, ply)
+			if item and ply:HasWeapon(item) then
+				SendSlotChange(slot, item, ply)
 			else
 				inventory[slot] = nil
 				SendSlotClear(slot, ply)
