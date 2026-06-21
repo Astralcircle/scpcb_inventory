@@ -93,6 +93,14 @@ hook.Add("WeaponEquip", "SCPCB_PickupWeapon", function(weapon, ply)
 		return
 	end
 
+	if not ply.SCPCBEnableSwitchCheck and not ply.SCPCBDisableSpawnChecks then
+		ply.SCPCBEnableSwitchCheck = true
+
+		timer.Simple(0, function()
+			ply.SCPCBEnableSwitchCheck = nil
+		end)
+	end
+
 	local inventory = SetupInventory(ply)
 	local slot = FindFreeSlot(inventory)
 
@@ -107,8 +115,6 @@ hook.Add("WeaponEquip", "SCPCB_PickupWeapon", function(weapon, ply)
 	else
 		weapon:Remove()
 	end
-
-	return false
 end)
 
 local function ClearRemovedWeapon(owner, weapon)
@@ -165,8 +171,6 @@ hook.Add("PlayerSpawn", "SCPCB_SilentSpawnEquip", function(ply)
 	ply.SCPCBDisableSpawnChecks = true
 
 	timer.Simple(0, function()
-		if ply:IsValid() then
-			ply.SCPCBDisableSpawnChecks = nil
-		end
+		ply.SCPCBDisableSpawnChecks = nil
 	end)
 end)
