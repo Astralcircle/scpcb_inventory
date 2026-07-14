@@ -96,6 +96,7 @@ local function ToggleInventory()
 	local total_height = rows * slot_size + (rows - 1) * slot_size
 
 	icons_parent = vgui.Create("Panel")
+	icons_parent:ParentToHUD()
 	icons_parent:SetSize(total_width, total_height)
 	icons_parent:MakePopup()
 	icons_parent:SetKeyboardInputEnabled(false)
